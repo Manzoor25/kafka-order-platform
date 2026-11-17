@@ -1,6 +1,7 @@
 package io.orderplatform.common.kafka;
 
 import io.orderplatform.events.TopicNames;
+import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.common.config.TopicConfig;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Topics-as-Code definition for all domain, non-blocking retry, and dead-letter topics.
@@ -32,6 +34,12 @@ public class PlatformTopicsConfiguration {
     private static final Logger log = LoggerFactory.getLogger(PlatformTopicsConfiguration.class);
     private static final String SEVEN_DAYS_MS = "604800000";
     private static final String THIRTY_DAYS_MS = "2592000000";
+
+    @Bean
+    public KafkaAdmin kafkaAdmin(PlatformKafkaProperties props) {
+        return new KafkaAdmin(Map.of(
+                AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, props.getBootstrapServers()));
+    }
 
     @Bean
     public KafkaAdmin.NewTopics platformTopics(PlatformKafkaProperties props) {

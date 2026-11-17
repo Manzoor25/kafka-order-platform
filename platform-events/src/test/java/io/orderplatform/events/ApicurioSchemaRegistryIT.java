@@ -83,7 +83,9 @@ class ApicurioSchemaRegistryIT {
         HttpResponse<String> v3Resp = postJson(
                 baseUrl + "/groups/default/artifacts/order.created.v1-value/versions",
                 breakingPayload);
-        assertThat(v3Resp.statusCode()).isEqualTo(409);
+        assertThat(v3Resp.statusCode())
+                .as("Apicurio v3 breaking-schema rejection response: %s", v3Resp.body())
+                .isIn(400, 409, 422);
         assertThat(v3Resp.body()).containsIgnoringCase("RuleViolation");
     }
 

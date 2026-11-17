@@ -337,7 +337,9 @@ class PlatformSagaEndToEndIT {
                 "--platform.kafka.bootstrap-servers=" + KAFKA.getBootstrapServers(),
                 "--platform.kafka.schema-registry-url=" + registryUrl,
                 "--platform.kafka.topic-replicas=1",
-                "--platform.kafka.topic-min-insync-replicas=1"
+                "--platform.kafka.topic-min-insync-replicas=1",
+                "--management.tracing.export.otlp.enabled=false",
+                "--management.opentelemetry.tracing.export.schedule-delay=200ms"
         ));
         for (String extra : extraProperties) {
             args.add("--" + extra);

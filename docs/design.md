@@ -19,7 +19,7 @@
 
 ## 2. Topic Design & Parameter Justifications
 
-Broker auto-topic creation is disabled (`auto.create.topics.enable=false`). All **15 topics** are provisioned explicitly as code in `PlatformTopicsConfiguration`:
+Broker auto-topic creation is disabled (`auto.create.topics.enable=false`). All **11 domain topics** plus their **3 non-blocking retry topics (`.retry-0..2`) and `.dlt` dead-letter topics** (**55 topics total**) are provisioned explicitly as code in `PlatformTopicsConfiguration`:
 
 | Topic Name | Producer | Consumer Group(s) | Key | Partitions | RF | `min.insync.replicas` |
 |---|---|---|---|---:|---:|---:|
@@ -28,16 +28,16 @@ Broker auto-topic creation is disabled (`auto.create.topics.enable=false`). All 
 | `payment.declined.v1` | `payment-service` (Kafka TX) | `order-service-group` | `orderId` | 6 | 3 | 2 |
 | `payment.refunded.v1` | `payment-service` (Kafka TX) | `order-service-group`, `notification-service-group` | `orderId` | 6 | 3 | 2 |
 | `inventory.reserved.v1` | `inventory-service` | `shipping-service-group`, `order-service-group` | `orderId` | 6 | 3 | 2 |
-| `inventory.reservation-failed.v1` | `inventory-service` | `payment-service-group` | `orderId` | 6 | 3 | 2 |
-| `inventory.released.v1` | `inventory-service` | *(audit / downstream analytics)* | `orderId` | 6 | 3 | 2 |
+| `inventory.rejected.v1` | `inventory-service` | `payment-service-group`, `order-service-group` | `orderId` | 6 | 3 | 2 |
+| `inventory.released.v1` | `inventory-service` | `payment-service-group`, `order-service-group` | `orderId` | 6 | 3 | 2 |
 | `shipping.scheduled.v1` | `shipping-service` | `order-service-group`, `notification-service-group` | `orderId` | 6 | 3 | 2 |
-| `shipping.failed.v1` | `shipping-service` | `inventory-service-group`, `payment-service-group` | `orderId` | 6 | 3 | 2 |
+| `shipping.failed.v1` | `shipping-service` | `inventory-service-group`, `order-service-group` | `orderId` | 6 | 3 | 2 |
 | `order.confirmed.v1` | `order-service` (Outbox) | `notification-service-group` | `orderId` | 6 | 3 | 2 |
 | `order.cancelled.v1` | `order-service` (Outbox) | `notification-service-group` | `orderId` | 6 | 3 | 2 |
-| `inventory.reserved.v1.retry-0` | `shipping-service` | `shipping-service-group-retry-0` (1s backoff) | `orderId` | 6 | 3 | 2 |
-| `inventory.reserved.v1.retry-1` | `shipping-service` | `shipping-service-group-retry-1` (2s backoff) | `orderId` | 6 | 3 | 2 |
-| `inventory.reserved.v1.retry-2` | `shipping-service` | `shipping-service-group-retry-2` (4s backoff) | `orderId` | 6 | 3 | 2 |
-| `inventory.reserved.v1.dlt` | `shipping-service` | `shipping-service-group-dlt`, `dlq-cli` | `orderId` | 6 | 3 | 2 |
+| `<domain>.retry-0` | Consumer service | `<service>-group` (non-blocking backoff tier 1) | `orderId` | 6 | 3 | 2 |
+| `<domain>.retry-1` | Consumer service | `<service>-group` (non-blocking backoff tier 2) | `orderId` | 6 | 3 | 2 |
+| `<domain>.retry-2` | Consumer service | `<service>-group` (non-blocking backoff tier 3) | `orderId` | 6 | 3 | 2 |
+| `<domain>.dlt` | Consumer service | `dlq-cli`, DLT audit listener (30-day retention) | `orderId` | 6 | 3 | 2 |
 
 ### Justification of Each Choice
 1. **Explicit Partition Count = `6`:**
@@ -59,7 +59,7 @@ Broker auto-topic creation is disabled (`auto.create.topics.enable=false`). All 
 |---|---|---|---|---|
 | **1. Client -> `order-service` -> `order.created.v1`** | Single PostgreSQL ACID TX writes `orders` + `outbox_events`; `FOR UPDATE SKIP LOCKED` relay sends with `acks=all`, `enable.idempotence=true` | At-least-once relay if `order-service` crashes after broker ACK before `UPDATE outbox_events SET published_at` | `payment-service` checks `payment_ledger(order_id UNIQUE)` + `processed_events(event_id PK)` | **Effectively-once** (zero divergence between DB & Kafka) |
 | **2. `order.created.v1` -> `payment-service` -> `payment.authorized.v1` / `payment.declined.v1`** | **Kafka Transactions (`KafkaTransactionManager`)**: atomic `sendOffsetsToTransaction` + output event commit via `__transaction_state` | **Exactly-once log-to-log** (`isolation.level=read_committed` filters uncommitted/aborted TX markers) | External `SimulatedCardGateway` deduplicates via deterministic `idempotencyKey = "charge:" + orderId`; downstream consumers enforce `processed_events(event_id)` | **Exactly-once inside Kafka** + **Idempotent external side effect** |
-| **3. `payment.authorized.v1` -> `inventory-service` -> `inventory.reserved.v1` / `reservation-failed.v1`** | Idempotent producer (`acks=all`, `enable.idempotence=true`) | Durable ISR quorum (`RF=3, minISR=2`) | Local JDBC TX atomically updates `sku_stock`, `stock_reservations(order_id)`, and `processed_events(event_id)` before `ack.acknowledge()`; crash recovery re-emits cached reservation on replay | **Effectively-once** stock mutation + guaranteed outbound progress |
+| **3. `payment.authorized.v1` -> `inventory-service` -> `inventory.reserved.v1` / `inventory.rejected.v1`** | Idempotent producer (`acks=all`, `enable.idempotence=true`) | Durable ISR quorum (`RF=3, minISR=2`) | Local JDBC TX atomically updates `stock_catalog`, `stock_reservations(order_id)`, and `processed_events(event_id)` before `ack.acknowledge()`; crash recovery re-emits cached reservation on replay | **Effectively-once** stock mutation + guaranteed outbound progress |
 | **4. `inventory.reserved.v1` -> `shipping-service` -> `shipping.scheduled.v1` / `.retry-*` / `.dlt`** | Idempotent producer + `RetryTopicConfiguration` (`1s -> 2s -> 4s -> .dlt`) | Non-blocking topic forwarding preserves partition liveness | `shipments(order_id UNIQUE)` + `processed_events(event_id)` before manual `ack.acknowledge()` | **Effectively-once** shipment creation; poison messages isolated in `.dlt` |
 | **5. Milestone & Terminal Events -> `order-service` & `notification-service`** | Outbox (`order-service`) & idempotent producers | `read_committed` | `processed_events(event_id PK)` + `customer_notifications(dedup_key UNIQUE)` before manual offset commit | **Effectively-once** saga state transitions & customer notifications |
 

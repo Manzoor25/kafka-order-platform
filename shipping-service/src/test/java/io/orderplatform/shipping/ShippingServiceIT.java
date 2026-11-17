@@ -65,6 +65,7 @@ class ShippingServiceIT {
         registry.add("shipping.retry.initial-delay-ms", () -> 150);
         registry.add("shipping.retry.multiplier", () -> 2.0);
         registry.add("shipping.retry.max-delay-ms", () -> 600);
+        registry.add("management.tracing.export.otlp.enabled", () -> false);
     }
 
     @Autowired

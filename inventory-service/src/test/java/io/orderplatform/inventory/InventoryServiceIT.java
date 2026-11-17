@@ -61,6 +61,7 @@ class InventoryServiceIT {
                 () -> "http://" + APICURIO.getHost() + ":" + APICURIO.getMappedPort(8080) + "/apis/registry/v3");
         registry.add("platform.kafka.topic-replicas", () -> 1);
         registry.add("platform.kafka.topic-min-insync-replicas", () -> 1);
+        registry.add("management.tracing.export.otlp.enabled", () -> false);
     }
 
     @Autowired

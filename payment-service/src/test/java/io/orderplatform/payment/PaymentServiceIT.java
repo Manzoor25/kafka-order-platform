@@ -66,6 +66,7 @@ class PaymentServiceIT {
         registry.add("platform.kafka.topic-replicas", () -> 1);
         registry.add("platform.kafka.topic-min-insync-replicas", () -> 1);
         registry.add("payment.fault-injection.mid-tx-hold-ms", () -> 0);
+        registry.add("management.tracing.export.otlp.enabled", () -> false);
     }
 
     @Autowired

@@ -72,7 +72,7 @@ import json, sys
 expected_trace = sys.argv[1]
 items = json.load(sys.stdin)
 types = {n["notificationType"] for n in items}
-assert "SHIPMENT_SCHEDULED" in types and "ORDER_CONFIRMED" in types, f"Missing expected notifications: {types}"
+assert "SHIPMENT_DISPATCHED" in types and "ORDER_CONFIRMED" in types, f"Missing expected notifications: {types}"
 for n in items:
     print(f"  -> Notification [{n['notificationType']}] traceId={n['traceId']} subject='{n['subject']}'")
     assert n["traceId"] == expected_trace, f"Trace mismatch: {n['traceId']} != {expected_trace}"
