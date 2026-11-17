@@ -52,7 +52,7 @@ print(f"  -> Reservation ID : {o['reservationId']}")
 print(f"  -> Shipment ID    : {o['shipmentId']} (tracking={o['trackingNumber']})")
 print("  -> Saga History   :")
 for h in o["history"]:
-    print(f"       {h['previousStatus']} -> {h['newStatus']} via {h['triggerEvent']} ({h['details']})")
+    print(f"       {h['fromStatus']} -> {h['toStatus']} via {h['triggerEvent']} ({h['detail']})")
 PY
 
 echo "[3/4] Verifying customer notifications & W3C traceId propagation in notification-service..."

@@ -326,9 +326,13 @@ class PlatformSagaEndToEndIT {
             String... extraProperties) {
         String baseJdbc = POSTGRES.getJdbcUrl();
         String serviceJdbc = baseJdbc.substring(0, baseJdbc.lastIndexOf('/') + 1) + databaseName;
+        String serviceShortName = databaseName.replace("_db", "");
 
         List<String> args = new ArrayList<>(List.of(
                 "--server.port=0",
+                "--spring.application.name=" + serviceShortName + "-service",
+                "--spring.flyway.enabled=true",
+                "--spring.flyway.locations=classpath:db/migration/" + serviceShortName,
                 "--spring.jmx.enabled=false",
                 "--spring.main.banner-mode=off",
                 "--spring.datasource.url=" + serviceJdbc,
@@ -338,6 +342,7 @@ class PlatformSagaEndToEndIT {
                 "--platform.kafka.schema-registry-url=" + registryUrl,
                 "--platform.kafka.topic-replicas=1",
                 "--platform.kafka.topic-min-insync-replicas=1",
+                "--management.tracing.sampling.probability=1.0",
                 "--management.tracing.export.otlp.enabled=false",
                 "--management.opentelemetry.tracing.export.schedule-delay=200ms"
         ));

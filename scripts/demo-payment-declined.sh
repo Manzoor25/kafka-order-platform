@@ -40,7 +40,7 @@ import json, os
 o = json.loads(os.environ["D_JSON_PAYLOAD"])
 print(f"  -> Order {o['orderId']} final status={o['status']}, failureStage={o['failureStage']}, reason='{o['failureReason']}'")
 for h in o["history"]:
-    print(f"       {h['previousStatus']} -> {h['newStatus']} via {h['triggerEvent']}")
+    print(f"       {h['fromStatus']} -> {h['toStatus']} via {h['triggerEvent']}")
 assert o["status"] == "CANCELLED", f"Expected CANCELLED, got {o['status']}"
 assert o["failureStage"] == "PAYMENT", f"Expected PAYMENT, got {o['failureStage']}"
 PY
@@ -78,7 +78,7 @@ import json, os
 o = json.loads(os.environ["S_JSON_PAYLOAD"])
 print(f"  -> Order {o['orderId']} final status={o['status']}, failureStage={o['failureStage']}, reason='{o['failureReason']}'")
 for h in o["history"]:
-    print(f"       {h['previousStatus']} -> {h['newStatus']} via {h['triggerEvent']}")
+    print(f"       {h['fromStatus']} -> {h['toStatus']} via {h['triggerEvent']}")
 assert o["status"] == "CANCELLED", f"Expected CANCELLED, got {o['status']}"
 assert o["failureStage"] == "SHIPPING_FAILED", f"Expected SHIPPING_FAILED, got {o['failureStage']}"
 PY
