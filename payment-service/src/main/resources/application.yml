@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: payment-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/payment_db}
+    username: ${DB_USER:payment_user}
+    password: ${DB_PASSWORD:payment_pass}
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8082}
+
+platform:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8081/apis/registry/v3}
+    topic-partitions: ${TOPIC_PARTITIONS:6}
+    topic-replicas: ${TOPIC_REPLICAS:3}
+    topic-min-insync-replicas: ${TOPIC_MIN_ISR:2}
+    consumer-group-protocol: ${KAFKA_GROUP_PROTOCOL:consumer}
+
+payment:
+  kafka:
+    transaction-id-prefix: ${PAYMENT_TX_ID_PREFIX:payment-eos-tx-}
+  fault-injection:
+    mid-tx-hold-ms: ${PAYMENT_MID_TX_HOLD_MS:12000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
