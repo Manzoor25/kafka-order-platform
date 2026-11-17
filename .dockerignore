@@ -1,0 +1,9 @@
+.git
+.github
+**/target
+!**/pom.xml
+.idea
+*.iml
+*.log
+docs
+README.md
