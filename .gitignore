@@ -1,0 +1,22 @@
+# Build outputs
+target/
+**/target/
+build/
+
+# IDE & OS metadata
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+.DS_Store
+Thumbs.db
+
+# Runtime / local artifacts
+*.log
+.env
+.env.*
+!.env.example
+tmp/
+logs/
