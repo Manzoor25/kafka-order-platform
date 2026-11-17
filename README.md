@@ -157,7 +157,24 @@ Exercises both immediate decline (`tok_decline_insufficient_funds` -> `PaymentDe
 ```
 
 ### 5. KIP-848 Consumer Group Scaling 1 -> 3 (`make demo-scale-kip848`)
-Scales `inventory-service` from `1` to `3` containers under Kafka 4.4's KIP-848 `group.protocol=consumer` coordinator, printing `kafka-consumer-groups.sh --describe --members --verbose` before (`1` member holding `6` partitions per topic) and after (`3` members holding `2, 2, 2` partitions per topic), while processing 6 concurrent orders.
+Scales `inventory-service` from `1` to `3` containers under Kafka 4.4's KIP-848 `group.protocol=consumer` coordinator, printing `kafka-consumer-groups.sh --describe --members --verbose` before (`1` member holding `6` partitions per topic) and after (`3` members holding `2, 2, 2` partitions per topic), while processing 6 concurrent orders:
+
+```text
+--- BEFORE SCALING (1 Consumer Instance -> 6 Partitions per Topic) ---
+GROUP                   CLIENT-ID                          CURRENT-EPOCH  TARGET-ASSIGNMENT
+inventory-service-group consumer-inventory-service-group-1 3              payment.authorized.v1:0,1,2,3,4,5
+inventory-service-group consumer-inventory-service-group-2 3              shipping.failed.v1:0,1,2,3,4,5
+
+--- AFTER SCALING (3 Consumer Instances -> 2 + 2 + 2 Partitions per Topic) ---
+GROUP                   CLIENT-ID                          TARGET-EPOCH   TARGET-ASSIGNMENT
+inventory-service-group consumer-inventory-service-group-1 7              payment.authorized.v1:0,1
+inventory-service-group consumer-inventory-service-group-1 7              payment.authorized.v1:2,5
+inventory-service-group consumer-inventory-service-group-1 7              payment.authorized.v1:3,4
+inventory-service-group consumer-inventory-service-group-2 7              shipping.failed.v1:0,1
+inventory-service-group consumer-inventory-service-group-2 7              shipping.failed.v1:2,4
+inventory-service-group consumer-inventory-service-group-2 7              shipping.failed.v1:3,5
+[PASS] KIP-848 consumer group scaled 1 -> 3 (6 partitions -> 2, 2, 2) with zero lost orders!
+```
 
 ### 6. Avro `BACKWARD` Schema Evolution Gate (`make demo-schema-evolution`)
 Validates all 11 baseline Avro contracts, proves an additive optional field (`loyaltyTier` with `"default": null`) passes both CI and Apicurio Registry, and proves a breaking required field fails the CI gate with exit code `1` (`READER_FIELD_MISSING_DEFAULT_VALUE`) and HTTP `409` in Apicurio.
@@ -169,7 +186,7 @@ Validates all 11 baseline Avro contracts, proves an additive optional field (`lo
 | Module | Description |
 |---|---|
 | `platform-events` | 11 Avro `.avsc` contracts, generated `SpecificRecord` classes, and `SchemaBackwardCompatibilityValidator` CI gate |
-| `platform-common` | Explicit Topics-as-Code (`PlatformTopicsConfiguration`), KIP-848 + Apicurio serde factories, `AvroOrRawBytesSerializer`, JDBC `IdempotentEventGuard`, W3C `KafkaTraceHeaderSupport` |
+| `platform-common` | Explicit Topics-as-Code (`PlatformTopicsConfiguration`), KIP-848 + Apicurio serde factories, `AvroOrRawBytesSerializer` / `AvroOrRawBytesDeserializer`, JDBC `ProcessedEventStore`, W3C `KafkaTracePropagator` |
 | `order-service` | Client REST ingress (`/api/orders`), PostgreSQL transactional outbox (`FOR UPDATE SKIP LOCKED`), saga lifecycle & audit history |
 | `payment-service` | Kafka transactional `read-process-write` (`KafkaTransactionManager`) + external `SimulatedCardGateway` idempotency boundary |
 | `inventory-service` | KIP-848 horizontally scalable consumer, atomic SKU stock reservation, and `ShipmentFailed -> InventoryReleased` compensation |

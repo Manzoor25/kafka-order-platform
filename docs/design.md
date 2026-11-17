@@ -41,7 +41,7 @@ Broker auto-topic creation is disabled (`auto.create.topics.enable=false`). All 
 
 ### Justification of Each Choice
 1. **Explicit Partition Count = `6`:**
-   `6 = lcm(1, 2, 3, 6)`. Under KIP-848 (`group.protocol=consumer`), scaling a service between **1, 2, 3, or 6 replicas** distributes partitions evenly (`6`, `3+3`, `2+2+2`, or `1×6`) with zero idle instances and zero skew. Keeping partition count at `6` per topic (`90` partitions total across 15 topics, `270` replicas across 3 brokers) provides substantial horizontal concurrency while avoiding KRaft metadata inflation, slow leader failovers, and open file-descriptor pressure caused by over-partitioning.
+   `6 = lcm(1, 2, 3, 6)`. Under KIP-848 (`group.protocol=consumer`), scaling a service between **1, 2, 3, or 6 replicas** distributes partitions evenly (`6`, `3+3`, `2+2+2`, or `1×6`) with zero idle instances and zero skew. Keeping partition count at `6` per topic (`330` partitions total across 55 topics—11 domain streams × `[1 primary + 3 retry + 1 dlt]`—`990` replicas across 3 brokers) provides substantial horizontal concurrency while avoiding KRaft metadata inflation, slow leader failovers, and open file-descriptor pressure caused by over-partitioning.
 2. **Replication Factor = `3`:**
    Every partition has 1 leader and 2 followers spread across all 3 brokers (`kafka-1`, `kafka-2`, `kafka-3`). Losing one broker leaves 2 live replicas, preserving high availability even if a second broker undergoes a brief network blip before disk loss occurs. Internal coordination topics (`__consumer_offsets` and `__transaction_state`) are likewise pinned to `replication.factor=3`.
 3. **`min.insync.replicas = 2` (with `acks=all` & `unclean.leader.election.enable=false`):**
