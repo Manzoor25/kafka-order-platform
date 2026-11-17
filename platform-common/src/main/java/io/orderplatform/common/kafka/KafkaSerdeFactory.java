@@ -51,7 +51,7 @@ public final class KafkaSerdeFactory {
         Map<String, Object> cfg = new HashMap<>();
         cfg.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, props.getBootstrapServers());
         cfg.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-        cfg.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroKafkaSerializer.class);
+        cfg.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, AvroOrRawBytesSerializer.class);
 
         // Idempotent producer guarantees: acks=all + enable.idempotence=true
         cfg.put(ProducerConfig.ACKS_CONFIG, "all");

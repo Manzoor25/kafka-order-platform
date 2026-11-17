@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: shipping-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5435/shipping_db}
+    username: ${DB_USER:shipping_user}
+    password: ${DB_PASSWORD:shipping_pass}
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8084}
+
+platform:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8081/apis/registry/v3}
+    topic-partitions: ${TOPIC_PARTITIONS:6}
+    topic-replicas: ${TOPIC_REPLICAS:3}
+    topic-min-insync-replicas: ${TOPIC_MIN_ISR:2}
+    consumer-group-protocol: ${KAFKA_GROUP_PROTOCOL:consumer}
+
+shipping:
+  retry:
+    initial-delay-ms: ${SHIPPING_RETRY_INITIAL_DELAY_MS:1000}
+    multiplier: ${SHIPPING_RETRY_MULTIPLIER:2.0}
+    max-delay-ms: ${SHIPPING_RETRY_MAX_DELAY_MS:4000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
