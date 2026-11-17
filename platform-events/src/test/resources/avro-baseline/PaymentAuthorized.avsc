@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "PaymentAuthorized",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by payment-service within a Kafka transaction when card authorization succeeds.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "paymentId", "type": "string" },
+    { "name": "gatewayChargeId", "type": "string" },
+    { "name": "sku", "type": "string" },
+    { "name": "quantity", "type": "int" },
+    { "name": "amountCents", "type": "long" },
+    { "name": "currency", "type": "string", "default": "USD" },
+    { "name": "shippingPostalCode", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

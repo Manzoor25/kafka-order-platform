@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "InventoryReserved",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by inventory-service when SKU stock is locked for an order.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "reservationId", "type": "string" },
+    { "name": "sku", "type": "string" },
+    { "name": "quantity", "type": "int" },
+    { "name": "shippingPostalCode", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

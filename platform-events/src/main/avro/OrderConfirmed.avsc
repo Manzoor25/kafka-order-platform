@@ -1,0 +1,17 @@
+{
+  "type": "record",
+  "name": "OrderConfirmed",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by order-service via transactional outbox when saga completes successfully.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "customerId", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "shipmentId", "type": "string" },
+    { "name": "trackingNumber", "type": "string" },
+    { "name": "totalAmountCents", "type": "long" },
+    { "name": "currency", "type": "string", "default": "USD" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "ShipmentCreated",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by shipping-service when carrier booking succeeds.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "shipmentId", "type": "string" },
+    { "name": "carrier", "type": "string" },
+    { "name": "trackingNumber", "type": "string" },
+    { "name": "shippingPostalCode", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

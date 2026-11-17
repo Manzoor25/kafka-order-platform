@@ -16,6 +16,10 @@
     <version>1.0.0</version>
     <packaging>pom</packaging>
 
+    <modules>
+        <module>platform-events</module>
+    </modules>
+
     <name>Kafka Order Platform</name>
     <description>Event-driven choreographed order saga on Apache Kafka 4.4.0 KRaft, Spring Boot 4.1.2, Apicurio Registry 3.3.4, and PostgreSQL 17.11</description>
 
@@ -84,6 +88,9 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven-surefire-plugin.version}</version>
                     <configuration>
+                        <systemPropertyVariables>
+                            <org.apache.avro.SERIALIZABLE_PACKAGES>io.orderplatform.events.avro</org.apache.avro.SERIALIZABLE_PACKAGES>
+                        </systemPropertyVariables>
                         <includes>
                             <include>**/*Test.java</include>
                             <include>**/*Tests.java</include>
@@ -98,6 +105,9 @@
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${maven-failsafe-plugin.version}</version>
                     <configuration>
+                        <systemPropertyVariables>
+                            <org.apache.avro.SERIALIZABLE_PACKAGES>io.orderplatform.events.avro</org.apache.avro.SERIALIZABLE_PACKAGES>
+                        </systemPropertyVariables>
                         <includes>
                             <include>**/*IT.java</include>
                         </includes>

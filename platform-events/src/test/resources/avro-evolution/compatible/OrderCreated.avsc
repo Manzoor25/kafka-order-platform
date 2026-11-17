@@ -1,0 +1,21 @@
+{
+  "type": "record",
+  "name": "OrderCreated",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Compatible v3 candidate adding optional couponCode and priorityFulfillment with defaults.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "customerId", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "sku", "type": "string" },
+    { "name": "quantity", "type": "int" },
+    { "name": "totalAmountCents", "type": "long" },
+    { "name": "currency", "type": "string", "default": "USD" },
+    { "name": "paymentMethodToken", "type": "string" },
+    { "name": "shippingPostalCode", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" },
+    { "name": "couponCode", "type": ["null", "string"], "default": null },
+    { "name": "priorityFulfillment", "type": "boolean", "default": false }
+  ]
+}

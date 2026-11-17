@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "InventoryReleased",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Compensating event emitted by inventory-service after shipping fails; triggers payment refund.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "reservationId", "type": "string" },
+    { "name": "sku", "type": "string" },
+    { "name": "releasedQuantity", "type": "int" },
+    { "name": "reason", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

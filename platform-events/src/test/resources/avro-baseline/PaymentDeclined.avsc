@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "PaymentDeclined",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by payment-service when card authorization is declined.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "paymentId", "type": "string" },
+    { "name": "amountCents", "type": "long" },
+    { "name": "currency", "type": "string", "default": "USD" },
+    { "name": "reason", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

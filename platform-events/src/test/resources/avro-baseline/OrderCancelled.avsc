@@ -1,0 +1,15 @@
+{
+  "type": "record",
+  "name": "OrderCancelled",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by order-service via transactional outbox after all required saga compensations finish.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "customerId", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "failedStage", "type": "string" },
+    { "name": "reason", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

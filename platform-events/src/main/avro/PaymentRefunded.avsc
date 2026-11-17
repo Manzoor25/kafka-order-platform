@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "PaymentRefunded",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Compensating event emitted by payment-service when downstream inventory or shipping fails.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "paymentId", "type": "string" },
+    { "name": "gatewayRefundId", "type": "string" },
+    { "name": "amountCents", "type": "long" },
+    { "name": "currency", "type": "string", "default": "USD" },
+    { "name": "compensationTrigger", "type": "string" },
+    { "name": "reason", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}

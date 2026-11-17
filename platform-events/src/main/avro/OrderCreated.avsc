@@ -1,0 +1,20 @@
+{
+  "type": "record",
+  "name": "OrderCreated",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by order-service via transactional outbox when an order is accepted.",
+  "fields": [
+    { "name": "eventId", "type": "string", "doc": "Unique UUID for consumer idempotency" },
+    { "name": "orderId", "type": "string", "doc": "Aggregate identifier and Kafka partition key" },
+    { "name": "customerId", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "sku", "type": "string" },
+    { "name": "quantity", "type": "int" },
+    { "name": "totalAmountCents", "type": "long" },
+    { "name": "currency", "type": "string", "default": "USD" },
+    { "name": "paymentMethodToken", "type": "string" },
+    { "name": "shippingPostalCode", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" },
+    { "name": "couponCode", "type": ["null", "string"], "default": null, "doc": "Optional promotion code added via BACKWARD-compatible schema evolution" }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "type": "record",
+  "name": "ShipmentFailed",
+  "namespace": "io.orderplatform.events.avro",
+  "doc": "Emitted by shipping-service when carrier rejects shipment; triggers stock release and payment refund.",
+  "fields": [
+    { "name": "eventId", "type": "string" },
+    { "name": "orderId", "type": "string" },
+    { "name": "sku", "type": "string" },
+    { "name": "quantity", "type": "int" },
+    { "name": "shippingPostalCode", "type": "string" },
+    { "name": "reason", "type": "string" },
+    { "name": "customerEmail", "type": "string" },
+    { "name": "occurredAtEpochMs", "type": "long" }
+  ]
+}
