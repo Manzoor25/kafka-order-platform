@@ -1,5 +1,6 @@
 package io.orderplatform.common;
 
+import io.orderplatform.common.kafka.AvroOrRawBytesDeserializer;
 import io.orderplatform.common.kafka.KafkaSerdeFactory;
 import io.orderplatform.common.kafka.PlatformKafkaProperties;
 import io.orderplatform.common.kafka.PlatformTopicsConfiguration;
@@ -11,10 +12,12 @@ import org.apache.kafka.common.config.TopicConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PlatformTopicsAndSerdeTest {
 
@@ -44,5 +47,21 @@ class PlatformTopicsAndSerdeTest {
         assertThat(consumerCfg).containsEntry(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         assertThat(consumerCfg).containsEntry(ConsumerConfig.ISOLATION_LEVEL_CONFIG, "read_committed");
         assertThat(consumerCfg).containsEntry(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
+        assertThat(consumerCfg).containsEntry(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, AvroOrRawBytesDeserializer.class);
+    }
+
+    @Test
+    void avroOrRawBytesDeserializerRejectsCorruptBytesOnMainTopicAndPreservesRawBytesOnDlt() {
+        PlatformKafkaProperties props = new PlatformKafkaProperties();
+        try (AvroOrRawBytesDeserializer deserializer = new AvroOrRawBytesDeserializer()) {
+            deserializer.configure(KafkaSerdeFactory.avroConsumerConfigs(props, "serde-test"), false);
+            byte[] corrupt = "CORRUPT_WIRE_BYTES".getBytes(StandardCharsets.UTF_8);
+
+            assertThatThrownBy(() -> deserializer.deserialize(TopicNames.INVENTORY_RESERVED, corrupt))
+                    .isInstanceOf(RuntimeException.class);
+
+            Object dltDecoded = deserializer.deserialize(TopicNames.dltTopic(TopicNames.INVENTORY_RESERVED), corrupt);
+            assertThat(dltDecoded).isEqualTo(corrupt);
+        }
     }
 }

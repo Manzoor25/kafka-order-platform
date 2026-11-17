@@ -51,7 +51,9 @@ public class ShippingEventListener {
     public void onDeadLetter(ConsumerRecord<String, Object> record, Acknowledgment ack) {
         Header exHeader = record.headers().lastHeader(KafkaHeaders.DLT_EXCEPTION_MESSAGE);
         String exMsg = exHeader == null ? "unknown" : new String(exHeader.value(), StandardCharsets.UTF_8);
-        String payloadType = record.value() == null ? "RAW_CORRUPT_BYTES" : record.value().getClass().getSimpleName();
+        String payloadType = (record.value() == null || record.value() instanceof byte[])
+                ? "RAW_CORRUPT_BYTES"
+                : record.value().getClass().getSimpleName();
         log.error("DLT_RECORD_LANDED topic={} partition={} offset={} key={} payloadType={} reason={}",
                 record.topic(), record.partition(), record.offset(), record.key(), payloadType, exMsg);
         shipmentRepository.recordDeadLetterObservation(

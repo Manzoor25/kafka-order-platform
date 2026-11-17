@@ -80,9 +80,9 @@ fi
 echo "[5/5] Auditing external card gateway operations for ${ORDER_ID}:"
 AUDIT_JSON="$(curl -fsS "http://localhost:8082/internal/diagnostics/payments/${ORDER_ID}")"
 
-python3 - <<<"${AUDIT_JSON}" <<'PY'
-import json, sys
-audit = json.load(sys.stdin)
+AUDIT_JSON_PAYLOAD="${AUDIT_JSON}" python3 - <<'PY'
+import json, os
+audit = json.loads(os.environ["AUDIT_JSON_PAYLOAD"])
 ops = [op for op in audit["gatewayOperations"] if op["operationType"] == "CHARGE"]
 assert len(ops) == 1, f"Expected 1 CHARGE record, found {len(ops)}: {ops}"
 charge = ops[0]

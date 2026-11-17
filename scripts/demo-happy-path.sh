@@ -43,17 +43,17 @@ if [[ "${STATUS}" != "COMPLETED" ]]; then
   exit 1
 fi
 
-python3 -c '
-import json, sys
-o = json.load(sys.stdin)
-print(f"  -> Final Status   : {o[\"status\"]}")
-print(f"  -> Payment ID     : {o[\"paymentId\"]}")
-print(f"  -> Reservation ID : {o[\"reservationId\"]}")
-print(f"  -> Shipment ID    : {o[\"shipmentId\"]} (tracking={o[\"trackingNumber\"]})")
+ORDER_JSON_PAYLOAD="${ORDER_JSON}" python3 - <<'PY'
+import json, os
+o = json.loads(os.environ["ORDER_JSON_PAYLOAD"])
+print(f"  -> Final Status   : {o['status']}")
+print(f"  -> Payment ID     : {o['paymentId']}")
+print(f"  -> Reservation ID : {o['reservationId']}")
+print(f"  -> Shipment ID    : {o['shipmentId']} (tracking={o['trackingNumber']})")
 print("  -> Saga History   :")
 for h in o["history"]:
-    print(f"       {h[\"previousStatus\"]} -> {h[\"newStatus\"]} via {h[\"triggerEvent\"]} ({h[\"details\"]})")
-' <<<"${ORDER_JSON}"
+    print(f"       {h['previousStatus']} -> {h['newStatus']} via {h['triggerEvent']} ({h['details']})")
+PY
 
 echo "[3/4] Verifying customer notifications & W3C traceId propagation in notification-service..."
 NOTIF_COUNT=0
@@ -67,10 +67,10 @@ for _ in $(seq 1 30); do
   sleep 0.5
 done
 
-python3 - "${TRACE_ID}" <<<"${NOTIF_JSON}" <<'PY'
-import json, sys
-expected_trace = sys.argv[1]
-items = json.load(sys.stdin)
+NOTIF_JSON_PAYLOAD="${NOTIF_JSON}" EXPECTED_TRACE_ID="${TRACE_ID}" python3 - <<'PY'
+import json, os
+expected_trace = os.environ["EXPECTED_TRACE_ID"]
+items = json.loads(os.environ["NOTIF_JSON_PAYLOAD"])
 types = {n["notificationType"] for n in items}
 assert "SHIPMENT_DISPATCHED" in types and "ORDER_CONFIRMED" in types, f"Missing expected notifications: {types}"
 for n in items:

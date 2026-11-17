@@ -31,5 +31,6 @@ management:
   opentelemetry:
     tracing:
       export:
+        schedule-delay: 500ms
         otlp:
           endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}

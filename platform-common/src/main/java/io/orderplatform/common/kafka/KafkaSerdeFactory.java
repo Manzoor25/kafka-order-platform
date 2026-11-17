@@ -1,8 +1,6 @@
 package io.orderplatform.common.kafka;
 
 import io.apicurio.registry.resolver.config.SchemaResolverConfig;
-import io.apicurio.registry.serde.avro.AvroKafkaDeserializer;
-import io.apicurio.registry.serde.avro.AvroKafkaSerializer;
 import io.apicurio.registry.serde.avro.AvroSerdeConfig;
 import io.apicurio.registry.serde.avro.strategy.RecordIdStrategy;
 import io.apicurio.registry.serde.config.IdOption;
@@ -113,7 +111,7 @@ public final class KafkaSerdeFactory {
         cfg.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         cfg.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
         cfg.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
-        cfg.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, AvroKafkaDeserializer.class);
+        cfg.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, AvroOrRawBytesDeserializer.class);
 
         cfg.put(SchemaResolverConfig.REGISTRY_URL, props.getSchemaRegistryUrl());
         cfg.put(SchemaResolverConfig.ARTIFACT_RESOLVER_STRATEGY, RecordIdStrategy.class.getName());

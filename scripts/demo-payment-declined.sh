@@ -35,9 +35,9 @@ for _ in $(seq 1 40); do
   sleep 0.5
 done
 
-python3 - <<<"${D_JSON}" <<'PY'
-import json, sys
-o = json.load(sys.stdin)
+D_JSON_PAYLOAD="${D_JSON}" python3 - <<'PY'
+import json, os
+o = json.loads(os.environ["D_JSON_PAYLOAD"])
 print(f"  -> Order {o['orderId']} final status={o['status']}, failureStage={o['failureStage']}, reason='{o['failureReason']}'")
 for h in o["history"]:
     print(f"       {h['previousStatus']} -> {h['newStatus']} via {h['triggerEvent']}")
@@ -73,9 +73,9 @@ for _ in $(seq 1 50); do
   sleep 0.5
 done
 
-python3 - <<<"${S_JSON}" <<'PY'
-import json, sys
-o = json.load(sys.stdin)
+S_JSON_PAYLOAD="${S_JSON}" python3 - <<'PY'
+import json, os
+o = json.loads(os.environ["S_JSON_PAYLOAD"])
 print(f"  -> Order {o['orderId']} final status={o['status']}, failureStage={o['failureStage']}, reason='{o['failureReason']}'")
 for h in o["history"]:
     print(f"       {h['previousStatus']} -> {h['newStatus']} via {h['triggerEvent']}")
@@ -84,9 +84,9 @@ assert o["failureStage"] == "SHIPPING_FAILED", f"Expected SHIPPING_FAILED, got {
 PY
 
 PAY_AUDIT="$(curl -fsS "http://localhost:8082/internal/diagnostics/payments/${SHIPFAIL_ORDER}")"
-python3 - <<<"${PAY_AUDIT}" <<'PY'
-import json, sys
-doc = json.load(sys.stdin)
+PAY_AUDIT_PAYLOAD="${PAY_AUDIT}" python3 - <<'PY'
+import json, os
+doc = json.loads(os.environ["PAY_AUDIT_PAYLOAD"])
 ops = [op["operationType"] for op in doc["gatewayOperations"]]
 print(f"  -> Payment ledger status={doc['payment']['status']}, gateway operations={ops}")
 assert doc["payment"]["status"] == "REFUNDED"
