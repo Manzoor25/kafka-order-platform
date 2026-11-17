@@ -25,6 +25,7 @@
         <module>shipping-service</module>
         <module>notification-service</module>
         <module>dlq-cli</module>
+        <module>platform-e2e-tests</module>
     </modules>
 
     <name>Kafka Order Platform</name>
