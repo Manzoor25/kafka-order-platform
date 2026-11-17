@@ -19,6 +19,7 @@
     <modules>
         <module>platform-events</module>
         <module>platform-common</module>
+        <module>order-service</module>
     </modules>
 
     <name>Kafka Order Platform</name>

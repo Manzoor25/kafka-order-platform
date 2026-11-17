@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/order_db}
+    username: ${DB_USER:order_user}
+    password: ${DB_PASSWORD:order_pass}
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+platform:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    schema-registry-url: ${SCHEMA_REGISTRY_URL:http://localhost:8081/apis/registry/v3}
+    enforce-backward-rule-on-startup: ${ENFORCE_BACKWARD_ON_STARTUP:true}
+    topic-partitions: ${TOPIC_PARTITIONS:6}
+    topic-replicas: ${TOPIC_REPLICAS:3}
+    topic-min-insync-replicas: ${TOPIC_MIN_ISR:2}
+    consumer-group-protocol: ${KAFKA_GROUP_PROTOCOL:consumer}
+
+order:
+  outbox:
+    poll-interval-ms: ${OUTBOX_POLL_INTERVAL_MS:150}
+    batch-size: ${OUTBOX_BATCH_SIZE:50}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
