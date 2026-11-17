@@ -16,7 +16,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
-import org.springframework.kafka.core.KafkaOperations;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -28,8 +27,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.backoff.FixedBackOff;
 
 import javax.sql.DataSource;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Configures Kafka transactional read-process-write (EOS) for payment-service:
@@ -70,16 +67,6 @@ public class PaymentKafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, Object> paymentDltAvroKafkaTemplate(PlatformKafkaProperties props) {
-        return new KafkaTemplate<>(KafkaSerdeFactory.idempotentAvroProducerFactory(props));
-    }
-
-    @Bean
-    public KafkaTemplate<String, byte[]> paymentByteArrayKafkaTemplate(PlatformKafkaProperties props) {
-        return KafkaSerdeFactory.byteArrayKafkaTemplate(props);
-    }
-
-    @Bean
     public ConsumerFactory<String, Object> paymentConsumerFactory(PlatformKafkaProperties props) {
         return KafkaSerdeFactory.avroConsumerFactory(props, CONSUMER_GROUP);
     }
@@ -88,8 +75,7 @@ public class PaymentKafkaConfig {
     public ConcurrentKafkaListenerContainerFactory<String, Object> eosKafkaListenerContainerFactory(
             ConsumerFactory<String, Object> paymentConsumerFactory,
             KafkaTransactionManager<String, Object> paymentKafkaTransactionManager,
-            KafkaTemplate<String, Object> paymentTransactionalKafkaTemplate,
-            KafkaTemplate<String, byte[]> paymentByteArrayKafkaTemplate) {
+            KafkaTemplate<String, Object> paymentTransactionalKafkaTemplate) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(paymentConsumerFactory);
@@ -97,12 +83,8 @@ public class PaymentKafkaConfig {
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
         factory.getContainerProperties().setObservationEnabled(true);
 
-        Map<Class<?>, KafkaOperations<?, ?>> dltTemplates = new LinkedHashMap<>();
-        dltTemplates.put(byte[].class, paymentByteArrayKafkaTemplate);
-        dltTemplates.put(Object.class, paymentTransactionalKafkaTemplate);
-
         DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(
-                dltTemplates,
+                paymentTransactionalKafkaTemplate,
                 (record, ex) -> new TopicPartition(record.topic() + ".dlt", record.partition()));
         DefaultAfterRollbackProcessor<String, Object> rollbackProcessor =
                 new DefaultAfterRollbackProcessor<>(
