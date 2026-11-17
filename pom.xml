@@ -24,6 +24,7 @@
         <module>inventory-service</module>
         <module>shipping-service</module>
         <module>notification-service</module>
+        <module>dlq-cli</module>
     </modules>
 
     <name>Kafka Order Platform</name>
@@ -84,6 +85,13 @@
     <build>
         <pluginManagement>
             <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <classifier>exec</classifier>
+                    </configuration>
+                </plugin>
                 <plugin>
                     <groupId>org.apache.avro</groupId>
                     <artifactId>avro-maven-plugin</artifactId>
