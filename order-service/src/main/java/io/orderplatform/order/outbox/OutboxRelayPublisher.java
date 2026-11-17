@@ -2,8 +2,6 @@ package io.orderplatform.order.outbox;
 
 import io.opentelemetry.api.trace.Tracer;
 import io.orderplatform.common.tracing.KafkaTracePropagator;
-import org.apache.avro.specific.SpecificRecord;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +47,7 @@ public class OutboxRelayPublisher {
         int publishedCount = 0;
         for (OutboxEventRecord row : pending) {
             try {
-                SpecificRecord avroPayload = AvroJsonCodec.fromJson(row.eventType(), row.payloadJson());
+                Object avroPayload = AvroJsonCodec.fromJson(row.eventType(), row.payloadJson());
                 KafkaTracePropagator.sendWithStoredTraceparent(
                         tracer,
                         row.topic(),
