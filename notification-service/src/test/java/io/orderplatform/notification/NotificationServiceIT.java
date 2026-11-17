@@ -1,6 +1,7 @@
 package io.orderplatform.notification;
 
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import io.orderplatform.common.tracing.KafkaTracePropagator;
 import io.orderplatform.events.TopicNames;
 import io.orderplatform.events.avro.OrderConfirmed;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
@@ -29,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@DirtiesContext
 class NotificationServiceIT {
 
     @Container
@@ -77,12 +80,13 @@ class NotificationServiceIT {
 
         String traceId = "4bf92f3577b34da6a3ce929d0e0e4736";
         String traceparent = "00-" + traceId + "-00f067aa0ba902b7-01";
-        ProducerRecord<String, Object> rec = KafkaTracePropagator.tracedProducerRecord(
-                notificationTracer, TopicNames.ORDER_CONFIRMED, orderId, confirmed, traceparent);
-
-        // Send duplicate event twice; processed_events ensures only 1 notification is recorded
-        notificationKafkaTemplate.send(rec);
-        notificationKafkaTemplate.send(rec);
+        try (Scope ignored = KafkaTracePropagator.extractFromTraceparent(traceparent).makeCurrent()) {
+            ProducerRecord<String, Object> rec = KafkaTracePropagator.tracedProducerRecord(
+                    notificationTracer, TopicNames.ORDER_CONFIRMED, orderId, confirmed, traceparent);
+            // Send duplicate event twice; processed_events ensures only 1 notification is recorded
+            notificationKafkaTemplate.send(rec);
+            notificationKafkaTemplate.send(rec);
+        }
 
         PaymentRefunded refunded = new PaymentRefunded(
                 UUID.randomUUID().toString(), orderId, "pay-1", "re_1",

@@ -34,7 +34,8 @@ curl -fsS -X POST "http://localhost:8080/api/orders" \
 echo "[2/5] Waiting for payment-service to execute external card charge and hold open Kafka TX..."
 DETECTED="false"
 for _ in $(seq 1 60); do
-  if docker compose logs --since 60s payment-service 2>/dev/null | grep -q "MID_TX_HOLD_READY orderId=${ORDER_ID}"; then
+  RECENT_LOGS="$(docker compose logs --since 60s payment-service 2>/dev/null || true)"
+  if [[ "${RECENT_LOGS}" == *"MID_TX_HOLD_READY orderId=${ORDER_ID}"* ]]; then
     DETECTED="true"
     break
   fi

@@ -167,6 +167,45 @@ public final class KafkaTracePropagator {
         }
     }
 
+    public static <K, V> void sendWithStoredTraceparent(
+            Tracer tracer,
+            String topic,
+            K key,
+            V value,
+            String storedTraceparent,
+            ThrowingConsumer<ProducerRecord<K, V>> sender) throws Exception {
+        ProducerRecord<K, V> record = new ProducerRecord<>(topic, key, value);
+        Context parentContext = (storedTraceparent != null && !storedTraceparent.isBlank())
+                ? extractFromTraceparent(storedTraceparent)
+                : Context.current();
+
+        Span producerSpan = tracer.spanBuilder(topic + " publish")
+                .setParent(parentContext)
+                .setSpanKind(SpanKind.PRODUCER)
+                .setAttribute(AttributeKey.stringKey("messaging.system"), "kafka")
+                .setAttribute(AttributeKey.stringKey("messaging.destination.name"), topic)
+                .setAttribute(AttributeKey.stringKey("messaging.kafka.message.key"), String.valueOf(key))
+                .setAttribute(AttributeKey.stringKey("order.id"), String.valueOf(key))
+                .startSpan();
+        try (Scope ignored = parentContext.with(producerSpan).makeCurrent()) {
+            W3CTraceContextPropagator.getInstance()
+                    .inject(Context.current(), record.headers(), KAFKA_HEADER_SETTER);
+            sender.accept(record);
+            producerSpan.setStatus(StatusCode.OK);
+        } catch (Exception ex) {
+            producerSpan.recordException(ex);
+            producerSpan.setStatus(StatusCode.ERROR, ex.getMessage());
+            throw ex;
+        } finally {
+            producerSpan.end();
+        }
+    }
+
+    @FunctionalInterface
+    public interface ThrowingConsumer<T> {
+        void accept(T item) throws Exception;
+    }
+
     @FunctionalInterface
     public interface ThrowingRunnable {
         void run() throws Exception;

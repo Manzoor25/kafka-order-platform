@@ -50,14 +50,14 @@ public class OutboxRelayPublisher {
         for (OutboxEventRecord row : pending) {
             try {
                 SpecificRecord avroPayload = AvroJsonCodec.fromJson(row.eventType(), row.payloadJson());
-                ProducerRecord<String, Object> record = KafkaTracePropagator.tracedProducerRecord(
+                KafkaTracePropagator.sendWithStoredTraceparent(
                         tracer,
                         row.topic(),
                         row.aggregateId(),
                         avroPayload,
-                        row.traceparent()
+                        row.traceparent(),
+                        record -> kafkaTemplate.send(record).get(10, TimeUnit.SECONDS)
                 );
-                kafkaTemplate.send(record).get(10, TimeUnit.SECONDS);
                 outboxRepository.markPublished(row.id(), Instant.now());
                 publishedCount++;
             } catch (Exception ex) {

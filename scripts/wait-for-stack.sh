@@ -74,7 +74,7 @@ echo ""
 echo "Verifying Topics-as-Code (partitions=6, replication-factor=3, min.insync.replicas=2):"
 docker compose exec -T kafka-1 /opt/kafka/bin/kafka-topics.sh \
   --bootstrap-server kafka-1:19092 \
-  --describe --topic order.created.v1 | head -n 3
+  --describe --topic order.created.v1
 
 echo ""
 echo "Stack is UP and healthy:"
